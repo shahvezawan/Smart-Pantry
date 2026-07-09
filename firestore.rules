@@ -12,7 +12,9 @@ service cloud.firestore {
     }
     
     function isGroupMember(groupId) {
-      return isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/groups/$(groupId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/groups/$(groupId)).data.members;
     }
 
     match /users/{userId} {
@@ -34,18 +36,18 @@ service cloud.firestore {
 
     match /items/{itemId} {
       allow read: if isAuthenticated() && (
-        (resource.data.get('isGroup', false) == false && resource.data.ownerId == request.auth.uid) ||
-        (resource.data.get('isGroup', false) == true && isGroupMember(resource.data.ownerId))
+        (resource.data.isGroup == false && resource.data.ownerId == request.auth.uid) ||
+        (resource.data.isGroup == true && isGroupMember(resource.data.ownerId))
       );
       
       allow create: if isAuthenticated() && (
-        (request.resource.data.get('isGroup', false) == false && request.resource.data.ownerId == request.auth.uid) ||
-        (request.resource.data.get('isGroup', false) == true && isGroupMember(request.resource.data.ownerId))
+        (request.resource.data.isGroup == false && request.resource.data.ownerId == request.auth.uid) ||
+        (request.resource.data.isGroup == true && isGroupMember(request.resource.data.ownerId))
       );
       
       allow update, delete: if isAuthenticated() && (
-        (resource.data.get('isGroup', false) == false && resource.data.ownerId == request.auth.uid) ||
-        (resource.data.get('isGroup', false) == true && isGroupMember(resource.data.ownerId))
+        (resource.data.isGroup == false && resource.data.ownerId == request.auth.uid) ||
+        (resource.data.isGroup == true && isGroupMember(resource.data.ownerId))
       );
     }
   }
