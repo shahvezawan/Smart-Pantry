@@ -1,9 +1,9 @@
 {
-  apiKey: "AIzaSyDyEfXGQaOJ8yrjUW1jOzBt2cVE9wjsBe8",
-  authDomain: "stockflow-db5b8.firebaseapp.com",
-  projectId: "stockflow-db5b8",
-  storageBucket: "stockflow-db5b8.firebasestorage.app",
-  messagingSenderId: "1084572990639",
-  appId: "1:1084572990639:web:89556da9ec807b8d3ca85a",
-  measurementId: "G-XCLDKQRN4G"
+  "projectId": "stockflow-db5b8",
+  "appId": "1:1084572990639:web:89556da9ec807b8d3ca85a",
+  "apiKey": "AIzaSyDyEfXGQaOJ8yrjUW1jOzBt2cVE9wjsBe8",
+  "authDomain": "stockflow-db5b8.firebaseapp.com",
+  "storageBucket": "stockflow-db5b8.firebasestorage.ap",
+  "messagingSenderId": "1084572990639",
+  "measurementId": "G-XCLDKQRN4G"
 }
