@@ -1,0 +1,6 @@
+{
+  "name": "Smart Pantry",
+  "description": "A smart grocery list and inventory tracking app with real-time sync, smart consumption triggers, and personal/group sharing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

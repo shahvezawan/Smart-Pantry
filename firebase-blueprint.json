@@ -1,0 +1,32 @@
+{
+  "description": "Smart grocery list and inventory with personal and group sharing",
+  "collections": [
+    {
+      "name": "users",
+      "description": "User profiles",
+      "fields": [
+        { "name": "email", "type": "string" },
+        { "name": "activeGroupId", "type": "string", "optional": true }
+      ]
+    },
+    {
+      "name": "groups",
+      "description": "Shared groups",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "members", "type": "array" }
+      ]
+    },
+    {
+      "name": "items",
+      "description": "Inventory items",
+      "fields": [
+        { "name": "name", "type": "string" },
+        { "name": "quantity", "type": "number" },
+        { "name": "ownerId", "type": "string" },
+        { "name": "isGroup", "type": "boolean" },
+        { "name": "needsRestock", "type": "boolean" }
+      ]
+    }
+  ]
+}
