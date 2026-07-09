@@ -4,6 +4,7 @@
   "apiKey": "AIzaSyDyEfXGQaOJ8yrjUW1jOzBt2cVE9wjsBe8",
   "authDomain": "stockflow-db5b8.firebaseapp.com",
   "storageBucket": "stockflow-db5b8.firebasestorage.ap",
+  "firestoreDatabaseId": "(default)",
   "messagingSenderId": "1084572990639",
   "measurementId": "G-XCLDKQRN4G"
 }
