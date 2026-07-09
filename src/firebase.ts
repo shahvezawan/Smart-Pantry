@@ -5,5 +5,5 @@ import config from "../firebase-applet-config.json";
 
 // The config file contains the projectId and other details
 export const app = initializeApp(config);
-export const db = getFirestore(app); // Connects to '(default)' automatically
+export const db = getFirestore(app, (config as any).firestoreDatabaseId || "(default)");
 export const auth = getAuth(app);
