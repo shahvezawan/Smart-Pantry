@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import { useItems } from '../hooks/useItems';
-import { collection, addDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
-import { Plus, ShoppingCart } from 'lucide-react';
+import { Check, Pencil, Plus, ShoppingCart, Trash2, X } from 'lucide-react';
+import { Item } from '../types';
+
+const units = ['Pieces', 'Lbs', 'Kgs', 'Cartons', 'Packs', 'Liters', 'Ounces', 'Bags'];
+
+type ItemDraft = Pick<Item, 'name' | 'quantity'> & { unit: string };
 
 export default function RestockScreen({ activeGroupId }: { activeGroupId: string | null }) {
   const items = useItems(activeGroupId);
   const [newItemName, setNewItemName] = useState('');
   const [newQuantity, setNewQuantity] = useState(1);
   const [newUnit, setNewUnit] = useState('Pieces');
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [itemDraft, setItemDraft] = useState<ItemDraft>({ name: '', quantity: 1, unit: 'Pieces' });
 
-  const handleAddOrRestock = async (e: React.FormEvent) => {
+  const handleAddOrRestock = async (e: FormEvent) => {
     e.preventDefault();
     if (!newItemName.trim() || !auth.currentUser) return;
     
@@ -46,6 +53,31 @@ export default function RestockScreen({ activeGroupId }: { activeGroupId: string
       quantity: current + 1,
       needsRestock: false // if we increment, assume it's restocked
     });
+  };
+
+  const startEditing = (item: Item) => {
+    setEditingId(item.id);
+    setItemDraft({ name: item.name, quantity: item.quantity, unit: item.unit || 'Pieces' });
+  };
+
+  const handleSaveItem = async (e: FormEvent, id: string) => {
+    e.preventDefault();
+    const name = itemDraft.name.trim();
+    if (!name || itemDraft.quantity < 0) return;
+
+    await updateDoc(doc(db, 'items', id), {
+      name,
+      quantity: itemDraft.quantity,
+      unit: itemDraft.unit,
+      needsRestock: itemDraft.quantity === 0
+    });
+    setEditingId(null);
+  };
+
+  const handleDeleteItem = async (item: Item) => {
+    if (!window.confirm(`Delete ${item.name} from your pantry? This cannot be undone.`)) return;
+    await deleteDoc(doc(db, 'items', item.id));
+    if (editingId === item.id) setEditingId(null);
   };
 
   return (
@@ -89,14 +121,7 @@ export default function RestockScreen({ activeGroupId }: { activeGroupId: string
                   onChange={e => setNewUnit(e.target.value)}
                   className="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
                 >
-                  <option value="Pieces">Pieces</option>
-                  <option value="Lbs">Lbs</option>
-                  <option value="Kgs">Kgs</option>
-                  <option value="Cartons">Cartons</option>
-                  <option value="Packs">Packs</option>
-                  <option value="Liters">Liters</option>
-                  <option value="Ounces">Ounces</option>
-                  <option value="Bags">Bags</option>
+                  {units.map(unit => <option key={unit} value={unit}>{unit}</option>)}
                 </select>
               </div>
             </div>
@@ -112,18 +137,62 @@ export default function RestockScreen({ activeGroupId }: { activeGroupId: string
             {items.length === 0 ? (
               <div className="text-center py-4 text-slate-500">Your pantry is empty.</div>
             ) : (
-              items.map(item => (
-                <div key={item.id} className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
-                  <div>
-                    <div className="font-semibold text-slate-700">{item.name}</div>
+              items.map(item => editingId === item.id ? (
+                <form key={item.id} onSubmit={e => handleSaveItem(e, item.id)} className="p-3 bg-indigo-50/50 border border-indigo-200 rounded-xl space-y-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-[1fr_5rem_7rem] gap-2">
+                    <input
+                      aria-label="Item name"
+                      value={itemDraft.name}
+                      onChange={e => setItemDraft({ ...itemDraft, name: e.target.value })}
+                      className="p-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                      autoFocus
+                    />
+                    <input
+                      aria-label="Quantity"
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={itemDraft.quantity}
+                      onChange={e => setItemDraft({ ...itemDraft, quantity: Number(e.target.value) })}
+                      className="p-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                      required
+                    />
+                    <select
+                      aria-label="Unit"
+                      value={itemDraft.unit}
+                      onChange={e => setItemDraft({ ...itemDraft, unit: e.target.value })}
+                      className="p-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                      {units.map(unit => <option key={unit} value={unit}>{unit}</option>)}
+                    </select>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <button type="button" onClick={() => setEditingId(null)} className="px-3 py-2 text-xs font-bold text-slate-600 border border-slate-200 bg-white rounded-lg hover:bg-slate-50 flex items-center gap-1">
+                      <X className="w-3.5 h-3.5" /> Cancel
+                    </button>
+                    <button type="submit" className="px-3 py-2 text-xs font-bold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Save
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div key={item.id} className="flex items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+                  <div className="min-w-0">
+                    <div className="font-semibold text-slate-700 truncate">{item.name}</div>
                     <div className="text-sm text-slate-500">Stock: {item.quantity} {item.unit || ''}</div>
                   </div>
-                  <button 
-                    onClick={() => handleIncrement(item.id, item.quantity)}
-                    className="px-3 py-1 text-xs font-bold border border-slate-200 rounded-lg hover:bg-slate-50 flex items-center gap-1"
-                  >
-                    <Plus className="w-3 h-3" /> Restock
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button onClick={() => handleIncrement(item.id, item.quantity)} className="px-2.5 py-2 text-xs font-bold border border-slate-200 bg-white rounded-lg hover:bg-slate-100 flex items-center gap-1" title="Restock one">
+                      <Plus className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Restock</span>
+                    </button>
+                    <button onClick={() => startEditing(item)} className="p-2 text-indigo-600 border border-indigo-200 bg-white rounded-lg hover:bg-indigo-50" title={`Edit ${item.name}`} aria-label={`Edit ${item.name}`}>
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => handleDeleteItem(item)} className="p-2 text-red-600 border border-red-200 bg-white rounded-lg hover:bg-red-50" title={`Delete ${item.name}`} aria-label={`Delete ${item.name}`}>
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))
             )}
