@@ -3,8 +3,8 @@ import { clsx } from 'clsx';
 
 export default function BottomNav({ activeTab, onChangeTab }: { activeTab: string, onChangeTab: (tab: string) => void }) {
   const tabs = [
-    { id: 'consumption', label: 'Use', icon: Utensils },
     { id: 'list', label: 'List', icon: List },
+    { id: 'consumption', label: 'Use', icon: Utensils },
     { id: 'restock', label: 'Restock', icon: ShoppingCart },
   ];
 
