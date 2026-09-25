@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { auth, db } from './firebase';
 import { doc, setDoc } from 'firebase/firestore';
@@ -16,7 +16,7 @@ import GroupSelector from './components/GroupSelector';
 export default function App() {
   const [user, setUser] = useState(auth.currentUser);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('consumption'); // consumption, restock, list
+  const [activeTab, setActiveTab] = useState('list'); // list, consumption, restock
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function App() {
 function AuthScreen() {
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     try {
